@@ -22,12 +22,12 @@ Domains:
 ## Installation
 Please run the project running run-compose.sh (make sure to have Docker installed):
 ```
-./run-compose.sh up
+./run.sh up
 ```
 
 and stop the project using:
 ```
-./run-compose.sh down
+./run.sh down
 ```
 
 ## Assumptions & Constraints
