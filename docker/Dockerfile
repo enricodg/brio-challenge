@@ -30,5 +30,4 @@ RUN adduser -S nestjs -u 1001
 RUN chown -R nestjs:nodejs /app
 USER nestjs
 
-# Start the application
-CMD ["pnpm", "start:prod"]
+CMD ["node", "dist/main.js"]

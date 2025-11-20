@@ -17,12 +17,23 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "seed:notifications": "ts-node -r tsconfig-paths/register src/migration/seeds/seed-notification-types.ts",
+    "seed:subscriptions": "ts-node -r tsconfig-paths/register src/migration/seeds/seed-subscriptions.ts",
+    "seed:docker": "docker compose -f docker/docker-compose.yml exec app node dist/migration/seeds/seed-notification-types.js",
+    "seed:docker:subscriptions": "docker compose -f docker/docker-compose.yml exec app node dist/migration/seeds/seed-subscriptions.js"
   },
   "dependencies": {
+    "@nestjs/bullmq": "^11.0.4",
+    "@nestjs/cache-manager": "^3.0.0",
     "@nestjs/common": "^11.0.1",
+    "@nestjs/config": "^4.0.0",
     "@nestjs/core": "^11.0.1",
+    "@nestjs/mongoose": "^11.0.0",
     "@nestjs/platform-express": "^11.0.1",
+    "bullmq": "^5.64.0",
+    "mongoose": "^8.0.0",
+    "redis": "^4.6.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
   },
@@ -61,6 +72,14 @@
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
+    },
+    "moduleNameMapper": {
+      "^@configs/(.*)$": "<rootDir>/configs/$1",
+      "^@config$": "<rootDir>/configs/index",
+      "^@notifications/(.*)$": "<rootDir>/modules/notifications/$1",
+      "^@notification-types/(.*)$": "<rootDir>/modules/notification-types/$1",
+      "^@common/(.*)$": "<rootDir>/common/$1",
+      "^@subscriptions/(.*)$": "<rootDir>/modules/subscription-settings/$1"
     },
     "collectCoverageFrom": [
       "**/*.(t|j)s"

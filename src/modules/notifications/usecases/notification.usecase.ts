@@ -1,0 +1,110 @@
+import { Inject, Injectable } from '@nestjs/common';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
+import { NotificationRepository } from '@notifications/domains/interfaces/notification.repository.interface';
+import { Notification } from '@notifications/domains/notification';
+import { NotificationSendDto } from '@notifications/dtos/notification.send.dto';
+import { NotificationChannel } from '@common/enums/notification-channel';
+import { NotificationTypeRepository } from '@notification-types/domains/interfaces/notification-type-repository.interface';
+import { UserService } from '@common/external/user/user.service.interface';
+import { SubscriptionSettingsRepository } from '@subscriptions/domains/interfaces/subscription-settings.repository.interface';
+
+@Injectable()
+export class NotificationUseCase {
+  constructor(
+    @Inject(NotificationRepository)
+    private readonly repository: NotificationRepository,
+    @InjectQueue('notifications')
+    private readonly queue: Queue,
+    @Inject(NotificationTypeRepository)
+    private readonly notificationTypeRepository: NotificationTypeRepository,
+    @Inject(UserService)
+    private readonly userService: UserService,
+    @Inject(SubscriptionSettingsRepository)
+    private readonly subscriptionSettingsRepository: SubscriptionSettingsRepository,
+  ) {}
+
+  async getNotificationByUserId(userId: string): Promise<Notification[]> {
+    return this.repository.findByUserIdAndChannel(
+      userId,
+      NotificationChannel.UI,
+    );
+  }
+
+  async sendNotification(dto: NotificationSendDto): Promise<void> {
+    const type = await this.notificationTypeRepository.findByKey(
+      dto.notificationType,
+    );
+    if (!type) return;
+
+    const templates = type.templates;
+    const availableChannels = Object.keys(templates);
+
+    const userSubs =
+      await this.subscriptionSettingsRepository.getUserSubscriptions(
+        dto.userId,
+      );
+    const companySubs =
+      await this.subscriptionSettingsRepository.getCompanySubscriptions(
+        dto.companyId,
+      );
+
+    const filteredChannels = availableChannels.filter(
+      (c) => (userSubs[c] ?? true) && (companySubs[c] ?? true),
+    );
+
+    if (filteredChannels.length === 0) return;
+
+    const { user } = this.userService.getUserCompanyProfile(
+      dto.userId,
+      dto.companyId,
+    );
+
+    const render = (tpl?: { subject?: string; content?: string }) => {
+      const ctx: Record<string, string> = {};
+      for (const [k, v] of Object.entries(user ?? {})) ctx[k] = String(v ?? '');
+      if (!ctx.firstName && ctx.name)
+        ctx.firstName = String(ctx.name).split(' ')[0] || '';
+      const interpolate = (s?: string) =>
+        s?.replace(/{{\s*([\w]+)\s*}}/g, (_: string, key: string) =>
+          key in ctx ? ctx[key] : '',
+        );
+      const subject = interpolate(tpl?.subject);
+      const content = interpolate(tpl?.content);
+      return { subject, content };
+    };
+
+    const snapshot = filteredChannels.reduce(
+      (acc, ch) => {
+        const tpl = templates[ch as NotificationChannel];
+        const rendered = render(tpl);
+        if (!rendered.subject && !rendered.content) return acc;
+        acc[ch as NotificationChannel] = rendered;
+        return acc;
+      },
+      {} as Record<
+        NotificationChannel,
+        {
+          subject?: string;
+          content?: string;
+        }
+      >,
+    );
+
+    await this.queue.add(
+      'send',
+      {
+        userId: dto.userId,
+        companyId: dto.companyId,
+        notificationType: dto.notificationType,
+        snapshot,
+      },
+      {
+        attempts: 5,
+        backoff: { type: 'exponential', delay: 2000 },
+        removeOnComplete: true,
+        removeOnFail: false,
+      },
+    );
+  }
+}

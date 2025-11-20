@@ -10,9 +10,6 @@ services:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: password123
       MONGO_INITDB_DATABASE: brio_db
-    volumes:
-      - mongodb_data:/data/db
-      - mongodb_config:/data/configdb
     networks:
       - brio_network
 
@@ -24,8 +21,6 @@ services:
     ports:
       - "6379:6379"
     command: redis-server --appendonly yes
-    volumes:
-      - redis_data:/data
     networks:
       - brio_network
 
@@ -42,14 +37,57 @@ services:
       NODE_ENV: production
       PORT: 3000
       MONGODB_URI: mongodb://admin:password123@mongodb:27017/brio_db?authSource=admin
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_PASSWORD: ""
+      BULLMQ_HOST: redis
+      BULLMQ_PORT: 6379
     depends_on:
       - mongodb
       - redis
     volumes:
       - ../logs:/app/logs
+    networks:
+      - brio_network
+
+  # One-shot Seeder Service (runs automatically on up)
+  seed:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: brio-seed
+    depends_on:
+      - mongodb
+      - redis
+    environment:
+      MONGODB_URI: mongodb://admin:password123@mongodb:27017/brio_db?authSource=admin
+    command: sh -c "node dist/migration/seeds/seed-notification-types.js && node dist/migration/seeds/seed-subscriptions.js"
+    restart: "no"
+    networks:
+      - brio_network
+
+  # Post-seed HTTP calls to prime notifications
+  postseed:
+    image: curlimages/curl:8.7.1
+    container_name: brio-postseed
+    depends_on:
+      - app
+      - seed
+    command: >
+      sh -c '
+      for i in $(seq 1 60); do
+        CODE=$(curl -s -o /dev/null -w "%{http_code}" http://app:3000/api/notifications/u1);
+        if [ "$CODE" = "200" ]; then break; fi;
+        sleep 2;
+      done &&
+      curl -s -X POST -H "Content-Type: application/json" -d "{\"userId\":\"u1\",\"companyId\":\"c1\",\"notificationType\":\"leave-balance-reminder\"}" http://app:3000/api/notifications &&
+      curl -s -X POST -H "Content-Type: application/json" -d "{\"userId\":\"u1\",\"companyId\":\"c1\",\"notificationType\":\"monthly-payslip\"}" http://app:3000/api/notifications &&
+      curl -s -X POST -H "Content-Type: application/json" -d "{\"userId\":\"u1\",\"companyId\":\"c1\",\"notificationType\":\"happy-birthday\"}" http://app:3000/api/notifications &&
+      curl -s -X POST -H "Content-Type: application/json" -d "{\"userId\":\"u2\",\"companyId\":\"c1\",\"notificationType\":\"leave-balance-reminder\"}" http://app:3000/api/notifications &&
+      curl -s -X POST -H "Content-Type: application/json" -d "{\"userId\":\"u2\",\"companyId\":\"c1\",\"notificationType\":\"monthly-payslip\"}" http://app:3000/api/notifications &&
+      curl -s -X POST -H "Content-Type: application/json" -d "{\"userId\":\"u2\",\"companyId\":\"c1\",\"notificationType\":\"happy-birthday\"}" http://app:3000/api/notifications &&
+      curl -s -X POST -H "Content-Type: application/json" -d "{\"userId\":\"u3\",\"companyId\":\"c2\",\"notificationType\":\"leave-balance-reminder\"}" http://app:3000/api/notifications &&
+      curl -s -X POST -H "Content-Type: application/json" -d "{\"userId\":\"u3\",\"companyId\":\"c2\",\"notificationType\":\"monthly-payslip\"}" http://app:3000/api/notifications &&
+      curl -s -X POST -H "Content-Type: application/json" -d "{\"userId\":\"u3\",\"companyId\":\"c2\",\"notificationType\":\"happy-birthday\"}" http://app:3000/api/notifications
+      '
+    restart: "no"
     networks:
       - brio_network
 
@@ -70,28 +108,6 @@ services:
       - mongodb
     networks:
       - brio_network
-
-  # Redis Admin Interface
-  redis-commander:
-    image: rediscommander/redis-commander:latest
-    container_name: brio-redis-commander
-    restart: unless-stopped
-    ports:
-      - "8082:8081"
-    environment:
-      REDIS_HOSTS: local:redis:6379
-    depends_on:
-      - redis
-    networks:
-      - brio_network
-
-volumes:
-  mongodb_data:
-    driver: local
-  mongodb_config:
-    driver: local
-  redis_data:
-    driver: local
 
 networks:
   brio_network:
