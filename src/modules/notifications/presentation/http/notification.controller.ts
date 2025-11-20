@@ -17,8 +17,14 @@ export class NotificationsController {
   }
 
   @Post()
-  async send(@Body() body: NotificationSendDto): Promise<{ message: string }> {
-    await this.notificationUseCase.sendNotification(body);
-    return { message: 'Notification sent' };
+  async send(
+    @Body() body: NotificationSendDto,
+  ): Promise<{ data: { success: boolean } }> {
+    const success = await this.notificationUseCase.sendNotification(body);
+    return {
+      data: {
+        success: success,
+      },
+    };
   }
 }

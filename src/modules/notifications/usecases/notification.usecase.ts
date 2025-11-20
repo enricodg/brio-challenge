@@ -8,6 +8,7 @@ import { NotificationChannel } from '@common/enums/notification-channel';
 import { NotificationTypeRepository } from '@notification-types/domains/interfaces/notification-type-repository.interface';
 import { UserService } from '@common/external/user/user.service.interface';
 import { SubscriptionSettingsRepository } from '@subscriptions/domains/interfaces/subscription-settings.repository.interface';
+import { NotificationJobData } from '@notifications/dtos/notification.job.dto';
 
 @Injectable()
 export class NotificationUseCase {
@@ -31,11 +32,11 @@ export class NotificationUseCase {
     );
   }
 
-  async sendNotification(dto: NotificationSendDto): Promise<void> {
+  async sendNotification(dto: NotificationSendDto): Promise<boolean> {
     const type = await this.notificationTypeRepository.findByKey(
       dto.notificationType,
     );
-    if (!type) return;
+    if (!type) return false;
 
     const templates = type.templates;
     const availableChannels = Object.keys(templates);
@@ -53,7 +54,7 @@ export class NotificationUseCase {
       (c) => (userSubs[c] ?? true) && (companySubs[c] ?? true),
     );
 
-    if (filteredChannels.length === 0) return;
+    if (filteredChannels.length === 0) return false;
 
     const { user } = this.userService.getUserCompanyProfile(
       dto.userId,
@@ -98,7 +99,7 @@ export class NotificationUseCase {
         companyId: dto.companyId,
         notificationType: dto.notificationType,
         snapshot,
-      },
+      } as NotificationJobData,
       {
         attempts: 5,
         backoff: { type: 'exponential', delay: 2000 },
@@ -106,5 +107,6 @@ export class NotificationUseCase {
         removeOnFail: false,
       },
     );
+    return true;
   }
 }

@@ -24,11 +24,15 @@ import { BullModule } from '@nestjs/bullmq';
       inject: [ConfigService],
     }),
 
-    BullModule.forRoot({
-      connection: {
-        host: 'localhost',
-        port: 6379,
-      },
+    BullModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        connection: {
+          host: configService.get<string>('BULLMQ_HOST'),
+          port: configService.get<number>('BULLMQ_PORT'),
+        },
+      }),
+      inject: [ConfigService],
     }),
 
     NotificationsModule,

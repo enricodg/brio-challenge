@@ -35,8 +35,9 @@ and stop the project using:
 - Only 1 language is supported, and no i18n structure is implemented.
 - Body of the replacable part in subject & content is directly replaced by user data because there's no more context or requirement about the format of the data.
 - All configurations are default (e.g. database, message queue, etc.), no index is created on the database.
-- No user validation, only assume user & company is always exist.
+- No request body, user validation, only assume user & company is always exist.
 - No authentication, api versioning, base response, base db model is implemented.
+- User and company are not bounded to each other, and the caller is the one who's responsible for passing the correct user/company id.
 
 ## Tests
 Run test by

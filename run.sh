@@ -14,6 +14,7 @@ ACTION="${1:-up}"
 
 case "$ACTION" in
   up)
+    eval "$CMD build --no-cache"
     eval "$CMD up -d"
     ;;
   down)

@@ -4,19 +4,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { NotificationDocument } from '@notifications/infrastructure/persistence/notification.schema';
 import { NotificationChannel } from '@common/enums/notification-channel';
-
-type NotificationJobData = {
-  userId: string;
-  companyId: string;
-  notificationType: string;
-  snapshot: Record<
-    NotificationChannel,
-    {
-      subject?: string;
-      content?: string;
-    }
-  >;
-};
+import { NotificationJobData } from '@notifications/dtos/notification.job.dto';
 
 @Processor('notifications')
 export class NotificationProcessor extends WorkerHost {
