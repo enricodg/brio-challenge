@@ -27,7 +27,7 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/api/notifications/u1",
+					"raw": "http://localhost:3000/api/notifications/u1?page=0&limit=1",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -37,12 +37,22 @@
 						"api",
 						"notifications",
 						"u1"
+					],
+					"query": [
+						{
+							"key": "page",
+							"value": "0"
+						},
+						{
+							"key": "limit",
+							"value": "1"
+						}
 					]
 				}
 			},
 			"response": [
 				{
-					"name": "success response",
+					"name": "200",
 					"originalRequest": {
 						"method": "GET",
 						"header": [],
@@ -56,7 +66,7 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:3000/api/notifications/u1",
+							"raw": "http://localhost:3000/api/notifications/u1?page=0&limit=1",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -66,6 +76,16 @@
 								"api",
 								"notifications",
 								"u1"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "limit",
+									"value": "1"
+								}
 							]
 						}
 					},
@@ -83,15 +103,15 @@
 						},
 						{
 							"key": "Content-Length",
-							"value": "174"
+							"value": "211"
 						},
 						{
 							"key": "ETag",
-							"value": "W/\"ae-l8jqoT4RAlffgauIS7lzaK8zcYk\""
+							"value": "W/\"d3-+kJ+Pemn1eJYfxZgmZHn1Qnqz44\""
 						},
 						{
 							"key": "Date",
-							"value": "Thu, 20 Nov 2025 20:14:12 GMT"
+							"value": "Fri, 21 Nov 2025 04:12:56 GMT"
 						},
 						{
 							"key": "Connection",
@@ -103,7 +123,7 @@
 						}
 					],
 					"cookie": [],
-					"body": "{\n    \"data\": [\n        {\n            \"id\": \"691f756cb1d34b16538c62df\",\n            \"userId\": \"u1\",\n            \"channel\": \"ui\",\n            \"subject\": \"\",\n            \"content\": \"Please book your leave\",\n            \"createdAt\": \"2025-11-20T20:09:16.740Z\",\n            \"readAt\": null\n        }\n    ]\n}"
+					"body": "{\n    \"data\": [\n        {\n            \"id\": \"691fe65346998732e682f736\",\n            \"userId\": \"u1\",\n            \"channel\": \"ui\",\n            \"subject\": \"\",\n            \"content\": \"Happy Birthday Enrico\",\n            \"createdAt\": \"2025-11-21T04:10:59.336Z\",\n            \"readAt\": null\n        }\n    ],\n    \"meta\": {\n        \"page\": 1,\n        \"limit\": 1,\n        \"total\": 4\n    }\n}"
 				}
 			]
 		},

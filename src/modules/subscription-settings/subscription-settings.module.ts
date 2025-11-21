@@ -1,9 +1,15 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { SubscriptionSettingsRepository } from './domains/interfaces/subscription-settings.repository.interface';
-import { SubscriptionSettingsRepositoryImpl } from './infrastructure/persistence/subscription-settings.repository';
+import {
+  UserSubscriptionSettingsRepository,
+  CompanySubscriptionSettingsRepository,
+} from './domains/interfaces/subscription-settings.base.repository.interface';
+import { UserSubscriptionSettingsRepositoryImpl } from './infrastructure/persistence/user-subscription-settings.repository';
+import { CompanySubscriptionSettingsRepositoryImpl } from './infrastructure/persistence/company-subscription-settings.repository';
 import { UserSubscriptionSettingsSchema } from './infrastructure/persistence/user-subscription-settings.schema';
 import { CompanySubscriptionSettingsSchema } from './infrastructure/persistence/company-subscription-settings.schema';
+import { UserSubscriptionSettingsUseCase } from './usecases/user-subscription-settings.usecase';
+import { CompanySubscriptionSettingsUseCase } from './usecases/company-subscription-settings.usecase';
 
 @Module({
   imports: [
@@ -20,10 +26,19 @@ import { CompanySubscriptionSettingsSchema } from './infrastructure/persistence/
   ],
   providers: [
     {
-      provide: SubscriptionSettingsRepository,
-      useClass: SubscriptionSettingsRepositoryImpl,
+      provide: UserSubscriptionSettingsRepository,
+      useClass: UserSubscriptionSettingsRepositoryImpl,
     },
+    {
+      provide: CompanySubscriptionSettingsRepository,
+      useClass: CompanySubscriptionSettingsRepositoryImpl,
+    },
+    UserSubscriptionSettingsUseCase,
+    CompanySubscriptionSettingsUseCase,
   ],
-  exports: [SubscriptionSettingsRepository],
+  exports: [
+    UserSubscriptionSettingsUseCase,
+    CompanySubscriptionSettingsUseCase,
+  ],
 })
 export class SubscriptionSettingsModule {}

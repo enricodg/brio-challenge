@@ -18,10 +18,7 @@ export class NotificationsController {
   }> {
     // This can be moved to common utils if needed to be reused
     const page = Math.max(1, pageParam ?? 1);
-    const limit = Math.max(
-      1,
-      Math.min(100, limitParam ?? 20),
-    );
+    const limit = Math.max(1, Math.min(100, limitParam ?? 20));
     const { items, total } =
       await this.notificationUseCase.getNotificationByUserId(
         userId,

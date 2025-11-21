@@ -7,7 +7,8 @@ import { NotificationSendDto } from '@notifications/dtos/notification.send.dto';
 import { NotificationChannel } from '@common/enums/notification-channel';
 import { NotificationTypeRepository } from '@notification-types/domains/interfaces/notification-type-repository.interface';
 import { UserService } from '@common/external/user/user.service.interface';
-import { SubscriptionSettingsRepository } from '@subscriptions/domains/interfaces/subscription-settings.repository.interface';
+import { UserSubscriptionSettingsUseCase } from '@subscriptions/usecases/user-subscription-settings.usecase';
+import { CompanySubscriptionSettingsUseCase } from '@subscriptions/usecases/company-subscription-settings.usecase';
 import { NotificationJobData } from '@notifications/dtos/notification.job.dto';
 
 @Injectable()
@@ -21,8 +22,8 @@ export class NotificationUseCase {
     private readonly notificationTypeRepository: NotificationTypeRepository,
     @Inject(UserService)
     private readonly userService: UserService,
-    @Inject(SubscriptionSettingsRepository)
-    private readonly subscriptionSettingsRepository: SubscriptionSettingsRepository,
+    private readonly userSubsUseCase: UserSubscriptionSettingsUseCase,
+    private readonly companySubsUseCase: CompanySubscriptionSettingsUseCase,
   ) {}
 
   async getNotificationByUserId(
@@ -47,14 +48,8 @@ export class NotificationUseCase {
     const templates = type.templates;
     const availableChannels = Object.keys(templates);
 
-    const userSubs =
-      await this.subscriptionSettingsRepository.getUserSubscriptions(
-        dto.userId,
-      );
-    const companySubs =
-      await this.subscriptionSettingsRepository.getCompanySubscriptions(
-        dto.companyId,
-      );
+    const userSubs = await this.userSubsUseCase.getSubscriptions(dto.userId);
+    const companySubs = await this.companySubsUseCase.getSubscriptions(dto.companyId);
 
     const filteredChannels = availableChannels.filter(
       (c) => (userSubs[c] ?? true) && (companySubs[c] ?? true),

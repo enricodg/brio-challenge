@@ -18,21 +18,21 @@ async function main() {
 
   const users = [
     {
-      userId: 'u1',
+      id: 'u1',
       channels: {
         ui: { subscribed: true },
         email: { subscribed: true },
       },
     },
     {
-      userId: 'u2',
+      id: 'u2',
       channels: {
         ui: { subscribed: false },
         email: { subscribed: false },
       },
     },
     {
-      userId: 'u3',
+      id: 'u3',
       channels: {
         ui: { subscribed: true },
         email: { subscribed: false },
@@ -42,14 +42,14 @@ async function main() {
 
   const companies = [
     {
-      companyId: 'c1',
+      id: 'c1',
       channels: {
         ui: { subscribed: true },
         email: { subscribed: true },
       },
     },
     {
-      companyId: 'c2',
+      id: 'c2',
       channels: {
         ui: { subscribed: false },
         email: { subscribed: false },
@@ -59,20 +59,20 @@ async function main() {
 
   for (const item of users) {
     await UserModel.updateOne(
-      { userId: item.userId },
+      { id: item.id },
       { $set: item },
       { upsert: true },
     );
-    console.log(`Seeded user subscriptions for ${item.userId}`);
+    console.log(`Seeded user subscriptions for ${item.id}`);
   }
 
   for (const item of companies) {
     await CompanyModel.updateOne(
-      { companyId: item.companyId },
+      { id: item.id },
       { $set: item },
       { upsert: true },
     );
-    console.log(`Seeded company subscriptions for ${item.companyId}`);
+    console.log(`Seeded company subscriptions for ${item.id}`);
   }
 
   await connection.disconnect();

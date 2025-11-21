@@ -3,7 +3,8 @@ import { NotificationUseCase } from './notification.usecase';
 import { NotificationRepository } from '@notifications/domains/interfaces/notification.repository.interface';
 import { NotificationTypeRepository } from '@notification-types/domains/interfaces/notification-type-repository.interface';
 import { NotificationChannel } from '@common/enums/notification-channel';
-import { SubscriptionSettingsRepository } from '@subscriptions/domains/interfaces/subscription-settings.repository.interface';
+import { UserSubscriptionSettingsUseCase } from '@subscriptions/usecases/user-subscription-settings.usecase';
+import { CompanySubscriptionSettingsUseCase } from '@subscriptions/usecases/company-subscription-settings.usecase';
 import { UserService } from '@common/external/user/user.service.interface';
 import {
   NotificationType,
@@ -13,6 +14,7 @@ import { UserSummary } from '@common/dtos/user/user.dto';
 
 class NotificationRepositoryStub implements NotificationRepository {
   findByUserIdAndChannel = jest.fn();
+  findByUserIdAndChannelPaged = jest.fn();
   create = jest.fn();
 }
 
@@ -33,22 +35,28 @@ class NotificationTypeRepositoryStub implements NotificationTypeRepository {
   });
 }
 
-class SubscriptionSettingsRepositoryStub
-  implements SubscriptionSettingsRepository
+class UserSubscriptionSettingsUseCaseStub
+  implements Pick<UserSubscriptionSettingsUseCase, 'getSubscriptions'>
 {
   constructor(
-    private readonly userSubs: Record<NotificationChannel, boolean> = {
-      [NotificationChannel.EMAIL]: true,
-      [NotificationChannel.UI]: true,
-    },
-    private readonly companySubs: Record<NotificationChannel, boolean> = {
+    private readonly subs: Record<NotificationChannel, boolean> = {
       [NotificationChannel.EMAIL]: true,
       [NotificationChannel.UI]: true,
     },
   ) {}
+  getSubscriptions = jest.fn(() => Promise.resolve(this.subs));
+}
 
-  getUserSubscriptions = jest.fn(() => Promise.resolve(this.userSubs));
-  getCompanySubscriptions = jest.fn(() => Promise.resolve(this.companySubs));
+class CompanySubscriptionSettingsUseCaseStub
+  implements Pick<CompanySubscriptionSettingsUseCase, 'getSubscriptions'>
+{
+  constructor(
+    private readonly subs: Record<NotificationChannel, boolean> = {
+      [NotificationChannel.EMAIL]: true,
+      [NotificationChannel.UI]: true,
+    },
+  ) {}
+  getSubscriptions = jest.fn(() => Promise.resolve(this.subs));
 }
 
 class UserServiceStub implements UserService {
@@ -69,8 +77,10 @@ describe('NotificationUseCase', () => {
     const queue = { add: queueAdd } as unknown as Queue;
     const typeRepo = new NotificationTypeRepositoryStub();
     const userSvc = new UserServiceStub();
-    const subsRepo = new SubscriptionSettingsRepositoryStub(
+    const userSubsUseCase = new UserSubscriptionSettingsUseCaseStub(
       { [NotificationChannel.EMAIL]: false, [NotificationChannel.UI]: true },
+    );
+    const companySubsUseCase = new CompanySubscriptionSettingsUseCaseStub(
       { [NotificationChannel.EMAIL]: true, [NotificationChannel.UI]: true },
     );
 
@@ -79,7 +89,8 @@ describe('NotificationUseCase', () => {
       queue,
       typeRepo,
       userSvc,
-      subsRepo,
+      userSubsUseCase as unknown as UserSubscriptionSettingsUseCase,
+      companySubsUseCase as unknown as CompanySubscriptionSettingsUseCase,
     );
 
     await usecase.sendNotification({
@@ -108,8 +119,10 @@ describe('NotificationUseCase', () => {
     const queue = { add: queueAdd } as unknown as Queue;
     const typeRepo = new NotificationTypeRepositoryStub();
     const userSvc = new UserServiceStub();
-    const subsRepo = new SubscriptionSettingsRepositoryStub(
+    const userSubsUseCase = new UserSubscriptionSettingsUseCaseStub(
       { [NotificationChannel.EMAIL]: true, [NotificationChannel.UI]: true },
+    );
+    const companySubsUseCase = new CompanySubscriptionSettingsUseCaseStub(
       { [NotificationChannel.EMAIL]: true, [NotificationChannel.UI]: false },
     );
 
@@ -118,7 +131,8 @@ describe('NotificationUseCase', () => {
       queue,
       typeRepo,
       userSvc,
-      subsRepo,
+      userSubsUseCase as unknown as UserSubscriptionSettingsUseCase,
+      companySubsUseCase as unknown as CompanySubscriptionSettingsUseCase,
     );
 
     await usecase.sendNotification({
@@ -145,8 +159,10 @@ describe('NotificationUseCase', () => {
     const queue = { add: queueAdd } as unknown as Queue;
     const typeRepo = new NotificationTypeRepositoryStub();
     const userSvc = new UserServiceStub();
-    const subsRepo = new SubscriptionSettingsRepositoryStub(
+    const userSubsUseCase = new UserSubscriptionSettingsUseCaseStub(
       { [NotificationChannel.EMAIL]: false, [NotificationChannel.UI]: false },
+    );
+    const companySubsUseCase = new CompanySubscriptionSettingsUseCaseStub(
       { [NotificationChannel.EMAIL]: false, [NotificationChannel.UI]: false },
     );
 
@@ -155,7 +171,8 @@ describe('NotificationUseCase', () => {
       queue,
       typeRepo,
       userSvc,
-      subsRepo,
+      userSubsUseCase as unknown as UserSubscriptionSettingsUseCase,
+      companySubsUseCase as unknown as CompanySubscriptionSettingsUseCase,
     );
 
     await usecase.sendNotification({
@@ -173,14 +190,16 @@ describe('NotificationUseCase', () => {
     const queue = { add: queueAdd } as unknown as Queue;
     const typeRepo = new NotificationTypeRepositoryStub();
     const userSvc = new UserServiceStub();
-    const subsRepo = new SubscriptionSettingsRepositoryStub();
+    const userSubsUseCase = new UserSubscriptionSettingsUseCaseStub();
+    const companySubsUseCase = new CompanySubscriptionSettingsUseCaseStub();
 
     const usecase = new NotificationUseCase(
       repo as unknown as NotificationRepository,
       queue,
       typeRepo,
       userSvc,
-      subsRepo,
+      userSubsUseCase as unknown as UserSubscriptionSettingsUseCase,
+      companySubsUseCase as unknown as CompanySubscriptionSettingsUseCase,
     );
 
     await usecase.sendNotification({

@@ -81,6 +81,7 @@ services:
     command: >
       sh -c '
       for i in $(seq 1 60); do
+        echo "Attempt $i: ";
         CODE=$(curl -s -o /dev/null -w "%{http_code}" http://app:3000/api/notifications/u1);
         if [ "$CODE" = "200" ]; then break; fi;
         sleep 2;

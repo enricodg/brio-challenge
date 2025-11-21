@@ -4,6 +4,12 @@ Hi! This is my solution for notification microservice. Because of the time const
 
 The project is a NestJS microservice for sending notifications via multiple channels with MongoDB persistence and BullMQ for async processing. The codebase follows a layered, modular structure (domains/infrastructure/presentation/usecases) with clear separation and future channel extensibility.
 
+## Folder Structure
+- common/ — common utilities, enums, shared module, etc.
+- configs/ — configuration files.
+- modules/ — notification domains.
+- migrations/ — database migrations/seeders.
+
 ## Module Layering (per domain)
 
 - domains/ — core entities and repository interfaces.
