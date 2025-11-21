@@ -80,12 +80,6 @@ services:
         condition: service_completed_successfully
     command: >
       sh -c '
-      for i in $(seq 1 60); do
-        echo "Attempt $i: ";
-        CODE=$(curl -s -o /dev/null -w "%{http_code}" http://app:3000/api/notifications/u1);
-        if [ "$CODE" = "200" ]; then break; fi;
-        sleep 2;
-      done &&
       curl -s -X POST -H "Content-Type: application/json" -d "{\"userId\":\"u1\",\"companyId\":\"c1\",\"notificationType\":\"leave-balance-reminder\"}" http://app:3000/api/notifications &&
       curl -s -X POST -H "Content-Type: application/json" -d "{\"userId\":\"u1\",\"companyId\":\"c1\",\"notificationType\":\"monthly-payslip\"}" http://app:3000/api/notifications &&
       curl -s -X POST -H "Content-Type: application/json" -d "{\"userId\":\"u1\",\"companyId\":\"c1\",\"notificationType\":\"happy-birthday\"}" http://app:3000/api/notifications &&

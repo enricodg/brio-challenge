@@ -1,7 +1,7 @@
 import { Queue } from 'bullmq';
 import { NotificationUseCase } from './notification.usecase';
 import { NotificationRepository } from '@notifications/domains/interfaces/notification.repository.interface';
-import { NotificationTypeRepository } from '@notification-types/domains/interfaces/notification-type-repository.interface';
+import { NotificationTypeUseCase } from '@notification-types/usecases/notification-type.usecase';
 import { NotificationChannel } from '@common/enums/notification-channel';
 import { UserSubscriptionSettingsUseCase } from '@subscriptions/usecases/user-subscription-settings.usecase';
 import { CompanySubscriptionSettingsUseCase } from '@subscriptions/usecases/company-subscription-settings.usecase';
@@ -18,8 +18,10 @@ class NotificationRepositoryStub implements NotificationRepository {
   create = jest.fn();
 }
 
-class NotificationTypeRepositoryStub implements NotificationTypeRepository {
-  findByKey = jest.fn((key: string): Promise<NotificationType | null> => {
+class NotificationTypeUseCaseStub
+  implements Pick<NotificationTypeUseCase, 'getByKey'>
+{
+  getByKey = jest.fn((key: string): Promise<NotificationType | null> => {
     if (key === 'happy-birthday') {
       return Promise.resolve(
         new NotificationType(key, {
@@ -75,7 +77,7 @@ describe('NotificationUseCase', () => {
     const repo = new NotificationRepositoryStub();
     const queueAdd = jest.fn<unknown, [string, any, any]>();
     const queue = { add: queueAdd } as unknown as Queue;
-    const typeRepo = new NotificationTypeRepositoryStub();
+    const typeRepo = new NotificationTypeUseCaseStub();
     const userSvc = new UserServiceStub();
     const userSubsUseCase = new UserSubscriptionSettingsUseCaseStub(
       { [NotificationChannel.EMAIL]: false, [NotificationChannel.UI]: true },
@@ -87,7 +89,7 @@ describe('NotificationUseCase', () => {
     const usecase = new NotificationUseCase(
       repo as unknown as NotificationRepository,
       queue,
-      typeRepo,
+      typeRepo as unknown as NotificationTypeUseCase,
       userSvc,
       userSubsUseCase as unknown as UserSubscriptionSettingsUseCase,
       companySubsUseCase as unknown as CompanySubscriptionSettingsUseCase,
@@ -117,7 +119,7 @@ describe('NotificationUseCase', () => {
     const repo = new NotificationRepositoryStub();
     const queueAdd = jest.fn<unknown, [string, any, any]>();
     const queue = { add: queueAdd } as unknown as Queue;
-    const typeRepo = new NotificationTypeRepositoryStub();
+    const typeRepo = new NotificationTypeUseCaseStub();
     const userSvc = new UserServiceStub();
     const userSubsUseCase = new UserSubscriptionSettingsUseCaseStub(
       { [NotificationChannel.EMAIL]: true, [NotificationChannel.UI]: true },
@@ -129,7 +131,7 @@ describe('NotificationUseCase', () => {
     const usecase = new NotificationUseCase(
       repo as unknown as NotificationRepository,
       queue,
-      typeRepo,
+      typeRepo as unknown as NotificationTypeUseCase,
       userSvc,
       userSubsUseCase as unknown as UserSubscriptionSettingsUseCase,
       companySubsUseCase as unknown as CompanySubscriptionSettingsUseCase,
@@ -157,7 +159,7 @@ describe('NotificationUseCase', () => {
     const repo = new NotificationRepositoryStub();
     const queueAdd = jest.fn<unknown, [string, any, any]>();
     const queue = { add: queueAdd } as unknown as Queue;
-    const typeRepo = new NotificationTypeRepositoryStub();
+    const typeRepo = new NotificationTypeUseCaseStub();
     const userSvc = new UserServiceStub();
     const userSubsUseCase = new UserSubscriptionSettingsUseCaseStub(
       { [NotificationChannel.EMAIL]: false, [NotificationChannel.UI]: false },
@@ -169,7 +171,7 @@ describe('NotificationUseCase', () => {
     const usecase = new NotificationUseCase(
       repo as unknown as NotificationRepository,
       queue,
-      typeRepo,
+      typeRepo as unknown as NotificationTypeUseCase,
       userSvc,
       userSubsUseCase as unknown as UserSubscriptionSettingsUseCase,
       companySubsUseCase as unknown as CompanySubscriptionSettingsUseCase,
@@ -188,7 +190,7 @@ describe('NotificationUseCase', () => {
     const repo = new NotificationRepositoryStub();
     const queueAdd = jest.fn<unknown, [string, any, any]>();
     const queue = { add: queueAdd } as unknown as Queue;
-    const typeRepo = new NotificationTypeRepositoryStub();
+    const typeRepo = new NotificationTypeUseCaseStub();
     const userSvc = new UserServiceStub();
     const userSubsUseCase = new UserSubscriptionSettingsUseCaseStub();
     const companySubsUseCase = new CompanySubscriptionSettingsUseCaseStub();
@@ -196,7 +198,7 @@ describe('NotificationUseCase', () => {
     const usecase = new NotificationUseCase(
       repo as unknown as NotificationRepository,
       queue,
-      typeRepo,
+      typeRepo as unknown as NotificationTypeUseCase,
       userSvc,
       userSubsUseCase as unknown as UserSubscriptionSettingsUseCase,
       companySubsUseCase as unknown as CompanySubscriptionSettingsUseCase,

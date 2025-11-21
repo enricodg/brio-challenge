@@ -5,7 +5,7 @@ import { NotificationRepository } from '@notifications/domains/interfaces/notifi
 import { Notification } from '@notifications/domains/notification';
 import { NotificationSendDto } from '@notifications/dtos/notification.send.dto';
 import { NotificationChannel } from '@common/enums/notification-channel';
-import { NotificationTypeRepository } from '@notification-types/domains/interfaces/notification-type-repository.interface';
+import { NotificationTypeUseCase } from '@notification-types/usecases/notification-type.usecase';
 import { UserService } from '@common/external/user/user.service.interface';
 import { UserSubscriptionSettingsUseCase } from '@subscriptions/usecases/user-subscription-settings.usecase';
 import { CompanySubscriptionSettingsUseCase } from '@subscriptions/usecases/company-subscription-settings.usecase';
@@ -18,8 +18,7 @@ export class NotificationUseCase {
     private readonly repository: NotificationRepository,
     @InjectQueue('notifications')
     private readonly queue: Queue,
-    @Inject(NotificationTypeRepository)
-    private readonly notificationTypeRepository: NotificationTypeRepository,
+    private readonly notificationTypeUseCase: NotificationTypeUseCase,
     @Inject(UserService)
     private readonly userService: UserService,
     private readonly userSubsUseCase: UserSubscriptionSettingsUseCase,
@@ -40,9 +39,7 @@ export class NotificationUseCase {
   }
 
   async sendNotification(dto: NotificationSendDto): Promise<boolean> {
-    const type = await this.notificationTypeRepository.findByKey(
-      dto.notificationType,
-    );
+    const type = await this.notificationTypeUseCase.getByKey(dto.notificationType);
     if (!type) return false;
 
     const templates = type.templates;
