@@ -44,6 +44,7 @@ and stop the project using:
 - No request body, user validation, only assume user & company is always exist.
 - No authentication, api versioning, base response, base db model is implemented.
 - User and company are not bounded to each other, and the caller is the one who's responsible for passing the correct user/company id.
+- By default employees and companies are subscribed to all channels. To unsubscribe it is required to fill the data in subscription_settings collection.
 
 ## Tests
 Run test by

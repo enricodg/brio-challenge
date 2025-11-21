@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Query,
+  BadRequestException,
+} from '@nestjs/common';
 import { Notification } from '@notifications/domains/notification';
 import { NotificationSendDto } from '@notifications/dtos/notification.send.dto';
 import { NotificationUseCase } from '@notifications/usecases/notification.usecase';
@@ -32,6 +40,18 @@ export class NotificationsController {
   async send(
     @Body() body: NotificationSendDto,
   ): Promise<{ data: { success: boolean } }> {
+    const { userId, companyId, notificationType } = body || {};
+    const valid =
+      typeof userId === 'string' &&
+      userId.trim().length > 0 &&
+      typeof companyId === 'string' &&
+      companyId.trim().length > 0 &&
+      typeof notificationType === 'string' &&
+      notificationType.trim().length > 0;
+    if (!valid)
+      throw new BadRequestException(
+        'userId, companyId, and notificationType are required',
+      );
     const success = await this.notificationUseCase.sendNotification(body);
     return {
       data: {

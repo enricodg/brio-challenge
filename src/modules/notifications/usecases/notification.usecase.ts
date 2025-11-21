@@ -39,14 +39,18 @@ export class NotificationUseCase {
   }
 
   async sendNotification(dto: NotificationSendDto): Promise<boolean> {
-    const type = await this.notificationTypeUseCase.getByKey(dto.notificationType);
+    const type = await this.notificationTypeUseCase.getByKey(
+      dto.notificationType,
+    );
     if (!type) return false;
 
     const templates = type.templates;
     const availableChannels = Object.keys(templates);
 
     const userSubs = await this.userSubsUseCase.getSubscriptions(dto.userId);
-    const companySubs = await this.companySubsUseCase.getSubscriptions(dto.companyId);
+    const companySubs = await this.companySubsUseCase.getSubscriptions(
+      dto.companyId,
+    );
 
     const filteredChannels = availableChannels.filter(
       (c) => (userSubs[c] ?? true) && (companySubs[c] ?? true),

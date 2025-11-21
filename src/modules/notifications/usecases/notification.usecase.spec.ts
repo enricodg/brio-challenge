@@ -79,12 +79,14 @@ describe('NotificationUseCase', () => {
     const queue = { add: queueAdd } as unknown as Queue;
     const typeRepo = new NotificationTypeUseCaseStub();
     const userSvc = new UserServiceStub();
-    const userSubsUseCase = new UserSubscriptionSettingsUseCaseStub(
-      { [NotificationChannel.EMAIL]: false, [NotificationChannel.UI]: true },
-    );
-    const companySubsUseCase = new CompanySubscriptionSettingsUseCaseStub(
-      { [NotificationChannel.EMAIL]: true, [NotificationChannel.UI]: true },
-    );
+    const userSubsUseCase = new UserSubscriptionSettingsUseCaseStub({
+      [NotificationChannel.EMAIL]: false,
+      [NotificationChannel.UI]: true,
+    });
+    const companySubsUseCase = new CompanySubscriptionSettingsUseCaseStub({
+      [NotificationChannel.EMAIL]: true,
+      [NotificationChannel.UI]: true,
+    });
 
     const usecase = new NotificationUseCase(
       repo as unknown as NotificationRepository,
@@ -121,12 +123,14 @@ describe('NotificationUseCase', () => {
     const queue = { add: queueAdd } as unknown as Queue;
     const typeRepo = new NotificationTypeUseCaseStub();
     const userSvc = new UserServiceStub();
-    const userSubsUseCase = new UserSubscriptionSettingsUseCaseStub(
-      { [NotificationChannel.EMAIL]: true, [NotificationChannel.UI]: true },
-    );
-    const companySubsUseCase = new CompanySubscriptionSettingsUseCaseStub(
-      { [NotificationChannel.EMAIL]: true, [NotificationChannel.UI]: false },
-    );
+    const userSubsUseCase = new UserSubscriptionSettingsUseCaseStub({
+      [NotificationChannel.EMAIL]: true,
+      [NotificationChannel.UI]: true,
+    });
+    const companySubsUseCase = new CompanySubscriptionSettingsUseCaseStub({
+      [NotificationChannel.EMAIL]: true,
+      [NotificationChannel.UI]: false,
+    });
 
     const usecase = new NotificationUseCase(
       repo as unknown as NotificationRepository,
@@ -161,12 +165,14 @@ describe('NotificationUseCase', () => {
     const queue = { add: queueAdd } as unknown as Queue;
     const typeRepo = new NotificationTypeUseCaseStub();
     const userSvc = new UserServiceStub();
-    const userSubsUseCase = new UserSubscriptionSettingsUseCaseStub(
-      { [NotificationChannel.EMAIL]: false, [NotificationChannel.UI]: false },
-    );
-    const companySubsUseCase = new CompanySubscriptionSettingsUseCaseStub(
-      { [NotificationChannel.EMAIL]: false, [NotificationChannel.UI]: false },
-    );
+    const userSubsUseCase = new UserSubscriptionSettingsUseCaseStub({
+      [NotificationChannel.EMAIL]: false,
+      [NotificationChannel.UI]: false,
+    });
+    const companySubsUseCase = new CompanySubscriptionSettingsUseCaseStub({
+      [NotificationChannel.EMAIL]: false,
+      [NotificationChannel.UI]: false,
+    });
 
     const usecase = new NotificationUseCase(
       repo as unknown as NotificationRepository,
