@@ -1,4 +1,4 @@
-import { NotificationChannel } from "@common/enums/notification-channel";
+import { NotificationChannel } from '@common/enums/notification-channel';
 
 export type NotificationJobData = {
   userId: string;

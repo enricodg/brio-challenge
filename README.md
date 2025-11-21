@@ -55,3 +55,7 @@ Tests:       9 passed, 9 total
 Snapshots:   0 total
 Time:        0.61 s, estimated 1 s
 ```
+
+After running the project, data is already seeded for user with id `u1` and company with id `c1`.
+Console log for email also shows the sent email.
+Postman collection is available in the root of the project.

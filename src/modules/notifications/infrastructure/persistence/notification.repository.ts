@@ -37,6 +37,38 @@ export class NotificationRepositoryImpl implements NotificationRepository {
     );
   }
 
+  async findByUserIdAndChannelPaged(
+    userId: string,
+    channel: NotificationChannel,
+    page: number,
+    limit: number,
+  ): Promise<{ items: Notification[]; total: number }> {
+    const filter = { userId, channel } as const;
+    const total = await this.model.countDocuments(filter).exec();
+    const docs = await this.model
+      .find(filter)
+      .sort({ createdAt: -1 })
+      .skip(Math.max(0, (page - 1) * limit))
+      .limit(Math.max(1, limit))
+      .lean()
+      .exec();
+
+    const items = docs.map(
+      (d) =>
+        new Notification(
+          String(d._id),
+          d.userId,
+          channel,
+          d.subject,
+          d.content,
+          d.createdAt,
+          d.readAt ?? null,
+        ),
+    );
+
+    return { items, total };
+  }
+
   async create(data: {
     userId: string;
     channel: NotificationChannel;

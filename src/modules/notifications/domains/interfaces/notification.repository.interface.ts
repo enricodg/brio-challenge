@@ -7,6 +7,13 @@ export abstract class NotificationRepository {
     channel: NotificationChannel,
   ): Promise<Notification[]>;
 
+  abstract findByUserIdAndChannelPaged(
+    userId: string,
+    channel: NotificationChannel,
+    page: number,
+    limit: number,
+  ): Promise<{ items: Notification[]; total: number }>;
+
   abstract create(data: {
     userId: string;
     channel: NotificationChannel;

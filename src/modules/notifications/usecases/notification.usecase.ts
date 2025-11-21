@@ -25,10 +25,16 @@ export class NotificationUseCase {
     private readonly subscriptionSettingsRepository: SubscriptionSettingsRepository,
   ) {}
 
-  async getNotificationByUserId(userId: string): Promise<Notification[]> {
-    return this.repository.findByUserIdAndChannel(
+  async getNotificationByUserId(
+    userId: string,
+    page = 1,
+    limit = 20,
+  ): Promise<{ items: Notification[]; total: number }> {
+    return this.repository.findByUserIdAndChannelPaged(
       userId,
       NotificationChannel.UI,
+      page,
+      limit,
     );
   }
 

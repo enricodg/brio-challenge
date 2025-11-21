@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { Notification } from '@notifications/domains/notification';
 import { NotificationSendDto } from '@notifications/dtos/notification.send.dto';
 import { NotificationUseCase } from '@notifications/usecases/notification.usecase';
@@ -10,10 +10,25 @@ export class NotificationsController {
   @Get(':userId')
   async list(
     @Param('userId') userId: string,
-  ): Promise<{ data: Notification[] }> {
-    const items =
-      await this.notificationUseCase.getNotificationByUserId(userId);
-    return { data: items };
+    @Query('page') pageParam?: number,
+    @Query('limit') limitParam?: number,
+  ): Promise<{
+    data: Notification[];
+    meta: { page: number; limit: number; total: number };
+  }> {
+    // This can be moved to common utils if needed to be reused
+    const page = Math.max(1, pageParam ?? 1);
+    const limit = Math.max(
+      1,
+      Math.min(100, limitParam ?? 20),
+    );
+    const { items, total } =
+      await this.notificationUseCase.getNotificationByUserId(
+        userId,
+        page,
+        limit,
+      );
+    return { data: items, meta: { page, limit, total } };
   }
 
   @Post()
