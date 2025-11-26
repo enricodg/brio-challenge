@@ -99,7 +99,7 @@ describe('NotificationUseCase', () => {
       userSvc,
       userSubsUseCase as unknown as UserSubscriptionSettingsUseCase,
       companySubsUseCase as unknown as CompanySubscriptionSettingsUseCase,
-      handlers
+      handlers,
     );
 
     await usecase.sendNotification({
@@ -143,7 +143,7 @@ describe('NotificationUseCase', () => {
       userSvc,
       userSubsUseCase as unknown as UserSubscriptionSettingsUseCase,
       companySubsUseCase as unknown as CompanySubscriptionSettingsUseCase,
-      handlers
+      handlers,
     );
 
     await usecase.sendNotification({
@@ -185,7 +185,7 @@ describe('NotificationUseCase', () => {
       userSvc,
       userSubsUseCase as unknown as UserSubscriptionSettingsUseCase,
       companySubsUseCase as unknown as CompanySubscriptionSettingsUseCase,
-      handlers
+      handlers,
     );
 
     await usecase.sendNotification({
@@ -216,7 +216,7 @@ describe('NotificationUseCase', () => {
       userSvc,
       userSubsUseCase as unknown as UserSubscriptionSettingsUseCase,
       companySubsUseCase as unknown as CompanySubscriptionSettingsUseCase,
-      handlers
+      handlers,
     );
 
     await usecase.sendNotification({

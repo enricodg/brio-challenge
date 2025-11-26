@@ -1,20 +1,20 @@
 import { NotificationChannel } from '@common/enums/notification-channel';
 import { Notification } from '@notifications/domains/notification';
 
-export abstract class NotificationRepository {
-  abstract findByUserIdAndChannel(
+export interface NotificationRepository {
+  findByUserIdAndChannel(
     userId: string,
     channel: NotificationChannel,
   ): Promise<Notification[]>;
 
-  abstract findByUserIdAndChannelPaged(
+  findByUserIdAndChannelPaged(
     userId: string,
     channel: NotificationChannel,
     page: number,
     limit: number,
   ): Promise<{ items: Notification[]; total: number }>;
 
-  abstract create(data: {
+  create(data: {
     userId: string;
     channel: NotificationChannel;
     subject: string;

@@ -1,9 +1,5 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import {
-  UserSubscriptionSettingsRepository,
-  CompanySubscriptionSettingsRepository,
-} from './domains/interfaces/subscription-settings.base.repository.interface';
 import { UserSubscriptionSettingsRepositoryImpl } from './infrastructure/persistence/user-subscription-settings.repository';
 import { CompanySubscriptionSettingsRepositoryImpl } from './infrastructure/persistence/company-subscription-settings.repository';
 import { UserSubscriptionSettingsSchema } from './infrastructure/persistence/user-subscription-settings.schema';
@@ -26,11 +22,11 @@ import { CompanySubscriptionSettingsUseCase } from './usecases/company-subscript
   ],
   providers: [
     {
-      provide: UserSubscriptionSettingsRepository,
+      provide: 'UserSubscriptionSettingsRepository',
       useClass: UserSubscriptionSettingsRepositoryImpl,
     },
     {
-      provide: CompanySubscriptionSettingsRepository,
+      provide: 'CompanySubscriptionSettingsRepository',
       useClass: CompanySubscriptionSettingsRepositoryImpl,
     },
     UserSubscriptionSettingsUseCase,

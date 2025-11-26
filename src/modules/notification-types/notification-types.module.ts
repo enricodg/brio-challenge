@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { NotificationTypeSchema } from './infrastructure/persistence/notification-type.schema';
 import { NotificationTypeRepositoryImpl } from './infrastructure/persistence/notification-type.repository';
-import { NotificationTypeRepository } from '@notification-types/domains/interfaces/notification-type-repository.interface';
 import { NotificationTypeUseCase } from './usecases/notification-type.usecase';
 
 @Module({
@@ -13,7 +12,7 @@ import { NotificationTypeUseCase } from './usecases/notification-type.usecase';
   ],
   providers: [
     {
-      provide: NotificationTypeRepository,
+      provide: 'NotificationTypeRepository',
       useClass: NotificationTypeRepositoryImpl,
     },
     NotificationTypeUseCase,

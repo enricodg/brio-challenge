@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
-import { NotificationRepository } from '@notifications/domains/interfaces/notification.repository.interface';
+import type { NotificationRepository } from '@notifications/domains/interfaces/notification.repository.interface';
 import { Notification } from '@notifications/domains/notification';
 import { NotificationSendDto } from '@notifications/dtos/notification.send.dto';
 import { NotificationChannel } from '@common/enums/notification-channel';
@@ -11,12 +11,12 @@ import { UserSubscriptionSettingsUseCase } from '@subscriptions/usecases/user-su
 import { CompanySubscriptionSettingsUseCase } from '@subscriptions/usecases/company-subscription-settings.usecase';
 import { NotificationJobData } from '@notifications/dtos/notification.job.dto';
 import { NotificationSender } from '@notifications/infrastructure/channels/notification.sender.interface';
-import { NOTIFICATION_CHANNEL_SENDERS } from '@notifications/notifications.module';
+import { NOTIFICATION_CHANNEL_SENDERS } from '@notifications/tokens';
 
 @Injectable()
 export class NotificationUseCase {
   constructor(
-    @Inject(NotificationRepository)
+    @Inject('NotificationRepository')
     private readonly repository: NotificationRepository,
     @InjectQueue('notifications')
     private readonly queue: Queue,

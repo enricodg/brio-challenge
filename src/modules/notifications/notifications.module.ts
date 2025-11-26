@@ -13,10 +13,7 @@ import { SubscriptionSettingsModule } from '@subscriptions/subscription-settings
 import { NotificationChannel } from '@common/enums/notification-channel';
 import { UiNotificationSender } from '@notifications/infrastructure/channels/ui/ui.notification.sender';
 import { EmailNotificationSender } from '@notifications/infrastructure/channels/email/email.notification.sender';
-
-export const NOTIFICATION_CHANNEL_SENDERS = Symbol(
-  'NotificationChannelSenders',
-);
+import { NOTIFICATION_CHANNEL_SENDERS } from '@notifications/tokens';
 
 @Module({
   imports: [
@@ -30,14 +27,14 @@ export const NOTIFICATION_CHANNEL_SENDERS = Symbol(
   ],
   controllers: [NotificationsController],
   providers: [
-    { provide: NotificationRepository, useClass: NotificationRepositoryImpl },
+    { provide: 'NotificationRepository', useClass: NotificationRepositoryImpl },
     {
       provide: NOTIFICATION_CHANNEL_SENDERS,
       useFactory: (repo: NotificationRepository) => ({
         [NotificationChannel.UI]: new UiNotificationSender(repo),
         [NotificationChannel.EMAIL]: new EmailNotificationSender(),
       }),
-      inject: [NotificationRepository],
+      inject: ['NotificationRepository'],
     },
     NotificationUseCase,
     NotificationProcessor,

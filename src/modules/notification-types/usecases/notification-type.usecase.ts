@@ -1,11 +1,11 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { NotificationType } from '@notification-types/domains/notification-type';
-import { NotificationTypeRepository } from '@notification-types/domains/interfaces/notification-type-repository.interface';
+import type { NotificationTypeRepository } from '@notification-types/domains/interfaces/notification-type-repository.interface';
 
 @Injectable()
 export class NotificationTypeUseCase {
   constructor(
-    @Inject(NotificationTypeRepository)
+    @Inject('NotificationTypeRepository')
     private readonly repository: NotificationTypeRepository,
   ) {}
 
