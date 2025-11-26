@@ -77,38 +77,55 @@ export class NotificationUseCase {
       return { subject, content };
     };
 
-    const snapshot = filteredChannels.reduce(
-      (acc, ch) => {
-        const tpl = templates[ch as NotificationChannel];
-        const rendered = render(tpl);
-        if (!rendered.subject && !rendered.content) return acc;
-        acc[ch as NotificationChannel] = rendered;
-        return acc;
-      },
-      {} as Record<
-        NotificationChannel,
-        {
-          subject?: string;
-          content?: string;
-        }
-      >,
-    );
+    for (const ch of filteredChannels) {
+      const tpl = templates[ch as NotificationChannel];
+      const rendered = render(tpl);
+      if (!rendered.subject && !rendered.content) continue;
 
-    await this.queue.add(
-      'send',
-      {
-        userId: dto.userId,
-        companyId: dto.companyId,
-        notificationType: dto.notificationType,
-        snapshot,
-      } as NotificationJobData,
-      {
-        attempts: 5,
-        backoff: { type: 'exponential', delay: 2000 },
-        removeOnComplete: true,
-        removeOnFail: false,
-      },
-    );
+      await this.queue.add(
+        'send',
+        {
+          userId: dto.userId,
+          companyId: dto.companyId,
+          notificationType: dto.notificationType,
+          channel: ch as NotificationChannel,
+          payload: rendered,
+        } as NotificationJobData,
+        {
+          attempts: 5,
+          backoff: { type: 'exponential', delay: 2000 },
+          removeOnComplete: true,
+          removeOnFail: false,
+        },
+      );
+    }
     return true;
+  }
+
+  async processJob(data: NotificationJobData): Promise<void> {
+    const { channel, payload } = data;
+    if (channel === NotificationChannel.UI) {
+      try {
+        await this.repository.create({
+          userId: data.userId,
+          channel: NotificationChannel.UI,
+          subject: payload.subject ?? '',
+          content: payload.content ?? '',
+        });
+      } catch (err) {
+        console.error(
+          'NotificationProcessor create error',
+          channel,
+          data.userId,
+          (err as Error)?.message,
+        );
+        throw err;
+      }
+    }
+    if (channel === NotificationChannel.EMAIL) {
+      console.log(
+        `email to ${data.userId} | ${payload.subject ?? ''} | ${payload.content ?? ''}`,
+      );
+    }
   }
 }

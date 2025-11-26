@@ -106,15 +106,11 @@ describe('NotificationUseCase', () => {
     expect(queueAdd.mock.calls.length).toBe(1);
     expect(queueAdd.mock.calls[0][0]).toBe('send');
     const payload = queueAdd.mock.calls[0][1] as {
-      snapshot: Record<
-        NotificationChannel,
-        { subject?: string; content?: string }
-      >;
+      channel: NotificationChannel;
+      payload: { subject?: string; content?: string };
     };
-    expect(Object.keys(payload.snapshot)).toEqual([NotificationChannel.UI]);
-    expect(payload.snapshot[NotificationChannel.UI]?.content).toBe(
-      'Happy Birthday John',
-    );
+    expect(payload.channel).toBe(NotificationChannel.UI);
+    expect(payload.payload?.content).toBe('Happy Birthday John');
   });
 
   it('keeps EMAIL only when company unsubscribes UI', async () => {
@@ -148,15 +144,11 @@ describe('NotificationUseCase', () => {
     });
 
     const payload = queueAdd.mock.calls[0][1] as {
-      snapshot: Record<
-        NotificationChannel,
-        { subject?: string; content?: string }
-      >;
+      channel: NotificationChannel;
+      payload: { subject?: string; content?: string };
     };
-    expect(Object.keys(payload.snapshot)).toEqual([NotificationChannel.EMAIL]);
-    expect(payload.snapshot[NotificationChannel.EMAIL]?.subject).toBe(
-      'Happy Birthday John',
-    );
+    expect(payload.channel).toBe(NotificationChannel.EMAIL);
+    expect(payload.payload?.subject).toBe('Happy Birthday John');
   });
 
   it('does not enqueue when both user and company unsubscribe', async () => {

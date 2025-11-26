@@ -2,12 +2,77 @@ import { NotificationChannel } from '@common/enums/notification-channel';
 
 export class Notification {
   constructor(
-    public readonly id: string,
-    public readonly userId: string,
-    public readonly channel: NotificationChannel,
-    public readonly subject: string,
-    public readonly content: string,
-    public readonly createdAt: Date,
-    public readonly readAt?: Date | null,
-  ) {}
+    id: string,
+    userId: string,
+    channel: NotificationChannel,
+    subject: string,
+    content: string,
+    createdAt: Date,
+    readAt?: Date | null,
+  ) {
+    this._id = id;
+    this._userId = userId;
+    this._channel = channel;
+    this._subject = subject;
+    this._content = content;
+    this._createdAt = createdAt;
+    this._readAt = readAt ?? null;
+  }
+
+  private _id: string;
+  private _userId: string;
+  private _channel: NotificationChannel;
+  private _subject: string;
+  private _content: string;
+  private _createdAt: Date;
+  private _readAt: Date | null;
+
+  get id(): string {
+    return this._id;
+  }
+  set id(value: string) {
+    this._id = value;
+  }
+
+  get userId(): string {
+    return this._userId;
+  }
+  set userId(value: string) {
+    this._userId = value;
+  }
+
+  get channel(): NotificationChannel {
+    return this._channel;
+  }
+  set channel(value: NotificationChannel) {
+    this._channel = value;
+  }
+
+  get subject(): string {
+    return this._subject;
+  }
+  set subject(value: string) {
+    this._subject = value;
+  }
+
+  get content(): string {
+    return this._content;
+  }
+  set content(value: string) {
+    this._content = value;
+  }
+
+  get createdAt(): Date {
+    return this._createdAt;
+  }
+  set createdAt(value: Date) {
+    this._createdAt = value;
+  }
+
+  get readAt(): Date | null {
+    return this._readAt;
+  }
+  set readAt(value: Date | null) {
+    this._readAt = value;
+  }
 }

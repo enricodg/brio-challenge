@@ -1,7 +1,6 @@
 import { NotificationProcessor } from '@notifications/presentation/queues/notification.processor';
 import { NotificationChannel } from '@common/enums/notification-channel';
-import { Model } from 'mongoose';
-import { NotificationDocument } from '@notifications/infrastructure/persistence/notification.schema';
+import { NotificationUseCase } from '@notifications/usecases/notification.usecase';
 
 describe('NotificationProcessor', () => {
   type TestJob<T> = { data: T; updateProgress: jest.Mock };
@@ -10,8 +9,8 @@ describe('NotificationProcessor', () => {
     updateProgress: jest.fn(),
   });
 
-  const makeModel = (): { create: jest.Mock } => ({
-    create: jest.fn(),
+  const makeUseCase = (): { processJob: jest.Mock } => ({
+    processJob: jest.fn(),
   });
 
   beforeEach(() => {
@@ -24,9 +23,9 @@ describe('NotificationProcessor', () => {
   });
 
   it('persists UI notifications', async () => {
-    const model = makeModel();
+    const usecase = makeUseCase();
     const processor = new NotificationProcessor(
-      model as unknown as Model<NotificationDocument>,
+      usecase as unknown as NotificationUseCase,
     );
     const job = makeJob({
       userId: 'u1',
@@ -42,20 +41,14 @@ describe('NotificationProcessor', () => {
 
     await processor.process(job as any);
 
-    expect(model.create).toHaveBeenCalledWith({
-      userId: 'u1',
-      channel: NotificationChannel.UI,
-      subject: 's',
-      content: 'c',
-    });
-    expect(console.log).not.toHaveBeenCalled();
+    expect(usecase.processJob).toHaveBeenCalledWith(job.data);
     expect(job.updateProgress).toHaveBeenCalledWith(100);
   });
 
   it('logs EMAIL notifications', async () => {
-    const model = makeModel();
+    const usecase = makeUseCase();
     const processor = new NotificationProcessor(
-      model as unknown as Model<NotificationDocument>,
+      usecase as unknown as NotificationUseCase,
     );
     const job = makeJob({
       userId: 'u2',
@@ -71,15 +64,14 @@ describe('NotificationProcessor', () => {
 
     await processor.process(job as any);
 
-    expect(model.create).not.toHaveBeenCalled();
-    expect(console.log).toHaveBeenCalledWith('email to u2 | Subject | Body');
+    expect(usecase.processJob).toHaveBeenCalledWith(job.data);
     expect(job.updateProgress).toHaveBeenCalledWith(100);
   });
 
   it('handles both UI and EMAIL channels', async () => {
-    const model = makeModel();
+    const usecase = makeUseCase();
     const processor = new NotificationProcessor(
-      model as unknown as Model<NotificationDocument>,
+      usecase as unknown as NotificationUseCase,
     );
     const job = makeJob({
       userId: 'u3',
@@ -93,20 +85,14 @@ describe('NotificationProcessor', () => {
 
     await processor.process(job as any);
 
-    expect(model.create).toHaveBeenCalledWith({
-      userId: 'u3',
-      channel: NotificationChannel.UI,
-      subject: 'us',
-      content: 'uc',
-    });
-    expect(console.log).toHaveBeenCalledWith('email to u3 | es | ec');
+    expect(usecase.processJob).toHaveBeenCalledWith(job.data);
     expect(job.updateProgress).toHaveBeenCalledWith(100);
   });
 
   it('skips when snapshot is empty', async () => {
-    const model = makeModel();
+    const usecase = makeUseCase();
     const processor = new NotificationProcessor(
-      model as unknown as Model<NotificationDocument>,
+      usecase as unknown as NotificationUseCase,
     );
     const job = makeJob({
       userId: 'u4',
@@ -120,16 +106,15 @@ describe('NotificationProcessor', () => {
 
     await processor.process(job as any);
 
-    expect(model.create).not.toHaveBeenCalled();
-    expect(console.log).not.toHaveBeenCalled();
+    expect(usecase.processJob).toHaveBeenCalledWith(job.data);
     expect(job.updateProgress).toHaveBeenCalledWith(100);
   });
 
   it('throws and logs when UI persistence fails', async () => {
-    const model = makeModel();
-    model.create.mockRejectedValueOnce(new Error('db error'));
+    const usecase = makeUseCase();
+    usecase.processJob.mockRejectedValueOnce(new Error('db error'));
     const processor = new NotificationProcessor(
-      model as unknown as Model<NotificationDocument>,
+      usecase as unknown as NotificationUseCase,
     );
     const job = makeJob({
       userId: 'u5',
@@ -146,6 +131,5 @@ describe('NotificationProcessor', () => {
     await expect(processor.process(job as unknown as any)).rejects.toThrow(
       'db error',
     );
-    expect(console.error).toHaveBeenCalled();
   });
 });
