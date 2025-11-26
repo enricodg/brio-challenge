@@ -11,6 +11,7 @@ import {
   ChannelTemplates,
 } from '@notification-types/domains/notification-type';
 import { UserSummary } from '@common/dtos/user/user.dto';
+import { NotificationSender } from '@notifications/infrastructure/channels/notification.sender.interface';
 
 class NotificationRepositoryStub implements NotificationRepository {
   findByUserIdAndChannel = jest.fn();
@@ -87,7 +88,10 @@ describe('NotificationUseCase', () => {
       [NotificationChannel.EMAIL]: true,
       [NotificationChannel.UI]: true,
     });
-
+    const handlers: Record<NotificationChannel, NotificationSender> = {
+      [NotificationChannel.UI]: { send: jest.fn(() => Promise.resolve()) },
+      [NotificationChannel.EMAIL]: { send: jest.fn(() => Promise.resolve()) },
+    };
     const usecase = new NotificationUseCase(
       repo as unknown as NotificationRepository,
       queue,
@@ -95,6 +99,7 @@ describe('NotificationUseCase', () => {
       userSvc,
       userSubsUseCase as unknown as UserSubscriptionSettingsUseCase,
       companySubsUseCase as unknown as CompanySubscriptionSettingsUseCase,
+      handlers
     );
 
     await usecase.sendNotification({
@@ -127,7 +132,10 @@ describe('NotificationUseCase', () => {
       [NotificationChannel.EMAIL]: true,
       [NotificationChannel.UI]: false,
     });
-
+    const handlers: Record<NotificationChannel, NotificationSender> = {
+      [NotificationChannel.UI]: { send: jest.fn(() => Promise.resolve()) },
+      [NotificationChannel.EMAIL]: { send: jest.fn(() => Promise.resolve()) },
+    };
     const usecase = new NotificationUseCase(
       repo as unknown as NotificationRepository,
       queue,
@@ -135,6 +143,7 @@ describe('NotificationUseCase', () => {
       userSvc,
       userSubsUseCase as unknown as UserSubscriptionSettingsUseCase,
       companySubsUseCase as unknown as CompanySubscriptionSettingsUseCase,
+      handlers
     );
 
     await usecase.sendNotification({
@@ -165,7 +174,10 @@ describe('NotificationUseCase', () => {
       [NotificationChannel.EMAIL]: false,
       [NotificationChannel.UI]: false,
     });
-
+    const handlers: Record<NotificationChannel, NotificationSender> = {
+      [NotificationChannel.UI]: { send: jest.fn(() => Promise.resolve()) },
+      [NotificationChannel.EMAIL]: { send: jest.fn(() => Promise.resolve()) },
+    };
     const usecase = new NotificationUseCase(
       repo as unknown as NotificationRepository,
       queue,
@@ -173,6 +185,7 @@ describe('NotificationUseCase', () => {
       userSvc,
       userSubsUseCase as unknown as UserSubscriptionSettingsUseCase,
       companySubsUseCase as unknown as CompanySubscriptionSettingsUseCase,
+      handlers
     );
 
     await usecase.sendNotification({
@@ -192,7 +205,10 @@ describe('NotificationUseCase', () => {
     const userSvc = new UserServiceStub();
     const userSubsUseCase = new UserSubscriptionSettingsUseCaseStub();
     const companySubsUseCase = new CompanySubscriptionSettingsUseCaseStub();
-
+    const handlers: Record<NotificationChannel, NotificationSender> = {
+      [NotificationChannel.UI]: { send: jest.fn(() => Promise.resolve()) },
+      [NotificationChannel.EMAIL]: { send: jest.fn(() => Promise.resolve()) },
+    };
     const usecase = new NotificationUseCase(
       repo as unknown as NotificationRepository,
       queue,
@@ -200,6 +216,7 @@ describe('NotificationUseCase', () => {
       userSvc,
       userSubsUseCase as unknown as UserSubscriptionSettingsUseCase,
       companySubsUseCase as unknown as CompanySubscriptionSettingsUseCase,
+      handlers
     );
 
     await usecase.sendNotification({
@@ -209,5 +226,121 @@ describe('NotificationUseCase', () => {
     });
 
     expect(queueAdd).not.toHaveBeenCalled();
+  });
+
+  it('processJob delegates to UI sender', async () => {
+    const repo = new NotificationRepositoryStub();
+    const queue = {
+      add: jest.fn<unknown, [string, any, any]>(),
+    } as unknown as Queue;
+    const typeRepo = new NotificationTypeUseCaseStub();
+    const userSvc = new UserServiceStub();
+    const userSubsUseCase = new UserSubscriptionSettingsUseCaseStub();
+    const companySubsUseCase = new CompanySubscriptionSettingsUseCaseStub();
+    const handlers: Record<NotificationChannel, NotificationSender> = {
+      [NotificationChannel.UI]: { send: jest.fn(() => Promise.resolve()) },
+      [NotificationChannel.EMAIL]: { send: jest.fn(() => Promise.resolve()) },
+    };
+
+    const usecase = new NotificationUseCase(
+      repo as unknown as NotificationRepository,
+      queue,
+      typeRepo as unknown as NotificationTypeUseCase,
+      userSvc,
+      userSubsUseCase as unknown as UserSubscriptionSettingsUseCase,
+      companySubsUseCase as unknown as CompanySubscriptionSettingsUseCase,
+      handlers,
+    );
+
+    const data = {
+      userId: 'u5',
+      companyId: 'c5',
+      notificationType: 'happy-birthday',
+      channel: NotificationChannel.UI,
+      payload: { subject: 's', content: 'c' },
+    } as const;
+
+    await usecase.processJob(data as any);
+
+    expect((handlers[NotificationChannel.UI] as any).send).toHaveBeenCalledWith(
+      data,
+    );
+  });
+
+  it('processJob delegates to EMAIL sender', async () => {
+    const repo = new NotificationRepositoryStub();
+    const queue = {
+      add: jest.fn<unknown, [string, any, any]>(),
+    } as unknown as Queue;
+    const typeRepo = new NotificationTypeUseCaseStub();
+    const userSvc = new UserServiceStub();
+    const userSubsUseCase = new UserSubscriptionSettingsUseCaseStub();
+    const companySubsUseCase = new CompanySubscriptionSettingsUseCaseStub();
+    const handlers: Record<NotificationChannel, NotificationSender> = {
+      [NotificationChannel.UI]: { send: jest.fn(() => Promise.resolve()) },
+      [NotificationChannel.EMAIL]: { send: jest.fn(() => Promise.resolve()) },
+    };
+
+    const usecase = new NotificationUseCase(
+      repo as unknown as NotificationRepository,
+      queue,
+      typeRepo as unknown as NotificationTypeUseCase,
+      userSvc,
+      userSubsUseCase as unknown as UserSubscriptionSettingsUseCase,
+      companySubsUseCase as unknown as CompanySubscriptionSettingsUseCase,
+      handlers,
+    );
+
+    const data = {
+      userId: 'u6',
+      companyId: 'c6',
+      notificationType: 'happy-birthday',
+      channel: NotificationChannel.EMAIL,
+      payload: { subject: 's', content: 'c' },
+    } as const;
+
+    await usecase.processJob(data as any);
+
+    expect(
+      (handlers[NotificationChannel.EMAIL] as any).send,
+    ).toHaveBeenCalledWith(data);
+  });
+
+  it('processJob no-ops when handler missing', async () => {
+    const repo = new NotificationRepositoryStub();
+    const queue = {
+      add: jest.fn<unknown, [string, any, any]>(),
+    } as unknown as Queue;
+    const typeRepo = new NotificationTypeUseCaseStub();
+    const userSvc = new UserServiceStub();
+    const userSubsUseCase = new UserSubscriptionSettingsUseCaseStub();
+    const companySubsUseCase = new CompanySubscriptionSettingsUseCaseStub();
+    const handlers = {
+      [NotificationChannel.UI]: { send: jest.fn(() => Promise.resolve()) },
+    } as unknown as Record<NotificationChannel, NotificationSender>;
+
+    const usecase = new NotificationUseCase(
+      repo as unknown as NotificationRepository,
+      queue,
+      typeRepo as unknown as NotificationTypeUseCase,
+      userSvc,
+      userSubsUseCase as unknown as UserSubscriptionSettingsUseCase,
+      companySubsUseCase as unknown as CompanySubscriptionSettingsUseCase,
+      handlers,
+    );
+
+    const data = {
+      userId: 'u7',
+      companyId: 'c7',
+      notificationType: 'happy-birthday',
+      channel: NotificationChannel.EMAIL,
+      payload: { subject: 's', content: 'c' },
+    } as const;
+
+    await usecase.processJob(data as any);
+
+    expect(
+      (handlers[NotificationChannel.UI] as any).send,
+    ).not.toHaveBeenCalled();
   });
 });

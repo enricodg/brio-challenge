@@ -10,6 +10,8 @@ import { UserService } from '@common/external/user/user.service.interface';
 import { UserSubscriptionSettingsUseCase } from '@subscriptions/usecases/user-subscription-settings.usecase';
 import { CompanySubscriptionSettingsUseCase } from '@subscriptions/usecases/company-subscription-settings.usecase';
 import { NotificationJobData } from '@notifications/dtos/notification.job.dto';
+import { NotificationSender } from '@notifications/infrastructure/channels/notification.sender.interface';
+import { NOTIFICATION_CHANNEL_SENDERS } from '@notifications/notifications.module';
 
 @Injectable()
 export class NotificationUseCase {
@@ -23,6 +25,11 @@ export class NotificationUseCase {
     private readonly userService: UserService,
     private readonly userSubsUseCase: UserSubscriptionSettingsUseCase,
     private readonly companySubsUseCase: CompanySubscriptionSettingsUseCase,
+    @Inject(NOTIFICATION_CHANNEL_SENDERS)
+    private readonly channelHandlers: Record<
+      NotificationChannel,
+      NotificationSender
+    >,
   ) {}
 
   async getNotificationByUserId(
@@ -44,8 +51,7 @@ export class NotificationUseCase {
     );
     if (!type) return false;
 
-    const templates = type.templates;
-    const availableChannels = Object.keys(templates);
+    const availableChannels = type.availableChannels();
 
     const userSubs = await this.userSubsUseCase.getSubscriptions(dto.userId);
     const companySubs = await this.companySubsUseCase.getSubscriptions(
@@ -63,23 +69,11 @@ export class NotificationUseCase {
       dto.companyId,
     );
 
-    const render = (tpl?: { subject?: string; content?: string }) => {
-      const ctx: Record<string, string> = {};
-      for (const [k, v] of Object.entries(user ?? {})) ctx[k] = String(v ?? '');
-      if (!ctx.firstName && ctx.name)
-        ctx.firstName = String(ctx.name).split(' ')[0] || '';
-      const interpolate = (s?: string) =>
-        s?.replace(/{{\s*([\w]+)\s*}}/g, (_: string, key: string) =>
-          key in ctx ? ctx[key] : '',
-        );
-      const subject = interpolate(tpl?.subject);
-      const content = interpolate(tpl?.content);
-      return { subject, content };
-    };
+    const ctx: Record<string, string> = {};
+    for (const [k, v] of Object.entries(user ?? {})) ctx[k] = String(v ?? '');
 
     for (const ch of filteredChannels) {
-      const tpl = templates[ch as NotificationChannel];
-      const rendered = render(tpl);
+      const rendered = type.render(ch, ctx);
       if (!rendered.subject && !rendered.content) continue;
 
       await this.queue.add(
@@ -88,7 +82,7 @@ export class NotificationUseCase {
           userId: dto.userId,
           companyId: dto.companyId,
           notificationType: dto.notificationType,
-          channel: ch as NotificationChannel,
+          channel: ch,
           payload: rendered,
         } as NotificationJobData,
         {
@@ -103,29 +97,8 @@ export class NotificationUseCase {
   }
 
   async processJob(data: NotificationJobData): Promise<void> {
-    const { channel, payload } = data;
-    if (channel === NotificationChannel.UI) {
-      try {
-        await this.repository.create({
-          userId: data.userId,
-          channel: NotificationChannel.UI,
-          subject: payload.subject ?? '',
-          content: payload.content ?? '',
-        });
-      } catch (err) {
-        console.error(
-          'NotificationProcessor create error',
-          channel,
-          data.userId,
-          (err as Error)?.message,
-        );
-        throw err;
-      }
-    }
-    if (channel === NotificationChannel.EMAIL) {
-      console.log(
-        `email to ${data.userId} | ${payload.subject ?? ''} | ${payload.content ?? ''}`,
-      );
-    }
+    const handler = this.channelHandlers[data.channel];
+    if (!handler) return;
+    await handler.send(data);
   }
 }
