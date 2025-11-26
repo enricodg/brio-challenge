@@ -7,7 +7,7 @@ import {
   Query,
   BadRequestException,
 } from '@nestjs/common';
-import { Notification } from '@notifications/domains/notification';
+import { NotificationDto } from '@notifications/dtos/notification.dto';
 import { NotificationSendDto } from '@notifications/dtos/notification.send.dto';
 import { NotificationUseCase } from '@notifications/usecases/notification.usecase';
 
@@ -21,7 +21,7 @@ export class NotificationsController {
     @Query('page') pageParam?: number,
     @Query('limit') limitParam?: number,
   ): Promise<{
-    data: Notification[];
+    data: NotificationDto[];
     meta: { page: number; limit: number; total: number };
   }> {
     // This can be moved to common utils if needed to be reused

@@ -5,6 +5,7 @@ import { Notification } from '../../domains/notification';
 import { NotificationRepository } from '../../domains/interfaces/notification.repository.interface';
 import { NotificationDocument } from './notification.schema';
 import { NotificationChannel } from '@common/enums/notification-channel';
+import { NotificationMapper } from './notification.mapper';
 
 @Injectable()
 export class NotificationRepositoryImpl implements NotificationRepository {
@@ -12,30 +13,6 @@ export class NotificationRepositoryImpl implements NotificationRepository {
     @InjectModel('Notification')
     private readonly model: Model<NotificationDocument>,
   ) {}
-
-  async findByUserIdAndChannel(
-    userId: string,
-    channel: NotificationChannel,
-  ): Promise<Notification[]> {
-    const docs = await this.model
-      .find({ userId, channel })
-      .sort({ createdAt: -1 })
-      .lean()
-      .exec();
-
-    return docs.map(
-      (d) =>
-        new Notification(
-          String(d._id),
-          d.userId,
-          channel,
-          d.subject,
-          d.content,
-          d.createdAt,
-          d.readAt ?? null,
-        ),
-    );
-  }
 
   async findByUserIdAndChannelPaged(
     userId: string,
@@ -53,42 +30,32 @@ export class NotificationRepositoryImpl implements NotificationRepository {
       .lean()
       .exec();
 
-    const items = docs.map(
-      (d) =>
-        new Notification(
-          String(d._id),
-          d.userId,
-          channel,
-          d.subject,
-          d.content,
-          d.createdAt,
-          d.readAt ?? null,
-        ),
+    const items = docs.map((d) =>
+      NotificationMapper.toDomain({
+        id: String(d._id),
+        userId: d.userId,
+        channel: d.channel as NotificationChannel,
+        subject: d.subject,
+        content: d.content,
+        readAt: d.readAt ?? null,
+        createdAt: d.createdAt,
+      }),
     );
 
     return { items, total };
   }
 
-  async create(data: {
-    userId: string;
-    channel: NotificationChannel;
-    subject: string;
-    content: string;
-  }): Promise<Notification> {
-    const doc = await this.model.create({
-      userId: data.userId,
-      channel: data.channel,
-      subject: data.subject,
-      content: data.content,
+  async create(notification: Notification): Promise<Notification> {
+    const persistence = NotificationMapper.toPersistence(notification);
+    const doc = await this.model.create(persistence);
+    return NotificationMapper.toDomain({
+      id: String(doc._id),
+      userId: doc.userId,
+      channel: doc.channel as NotificationChannel,
+      subject: doc.subject,
+      content: doc.content,
+      readAt: doc.readAt ?? null,
+      createdAt: doc.createdAt,
     });
-    return new Notification(
-      String(doc._id),
-      doc.userId,
-      data.channel,
-      doc.subject,
-      doc.content,
-      doc.createdAt,
-      doc.readAt ?? null,
-    );
   }
 }

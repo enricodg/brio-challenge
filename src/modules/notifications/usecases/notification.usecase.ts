@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import type { NotificationRepository } from '@notifications/domains/interfaces/notification.repository.interface';
-import { Notification } from '@notifications/domains/notification';
+import { NotificationDto } from '@notifications/dtos/notification.dto';
 import { NotificationSendDto } from '@notifications/dtos/notification.send.dto';
 import { NotificationChannel } from '@common/enums/notification-channel';
 import { NotificationTypeUseCase } from '@notification-types/usecases/notification-type.usecase';
@@ -36,13 +36,15 @@ export class NotificationUseCase {
     userId: string,
     page = 1,
     limit = 20,
-  ): Promise<{ items: Notification[]; total: number }> {
-    return this.repository.findByUserIdAndChannelPaged(
+  ): Promise<{ items: NotificationDto[]; total: number }> {
+    const { items, total } = await this.repository.findByUserIdAndChannelPaged(
       userId,
       NotificationChannel.UI,
       page,
       limit,
     );
+    const mapped = items.map((n) => NotificationDto.fromDomain(n));
+    return { items: mapped, total };
   }
 
   async sendNotification(dto: NotificationSendDto): Promise<boolean> {

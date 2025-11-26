@@ -14,7 +14,6 @@ import { UserSummary } from '@common/dtos/user/user.dto';
 import { NotificationSender } from '@notifications/infrastructure/channels/notification.sender.interface';
 
 class NotificationRepositoryStub implements NotificationRepository {
-  findByUserIdAndChannel = jest.fn();
   findByUserIdAndChannelPaged = jest.fn();
   create = jest.fn();
 }

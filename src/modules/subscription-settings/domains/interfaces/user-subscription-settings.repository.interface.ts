@@ -1,3 +1,4 @@
 import { BaseSubscriptionSettingsRepository } from './subscription-settings.base.repository.interface';
 
-export interface UserSubscriptionSettingsRepository extends BaseSubscriptionSettingsRepository {}
+export interface UserSubscriptionSettingsRepository
+  extends BaseSubscriptionSettingsRepository {}

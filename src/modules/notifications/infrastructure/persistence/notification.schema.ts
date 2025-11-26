@@ -11,7 +11,7 @@ export class NotificationDocument extends Document {
   userId: string;
 
   @Prop({ required: true, enum: Object.values(NotificationChannel) })
-  channel: string;
+  channel: NotificationChannel;
 
   @Prop({ required: false })
   subject: string;

@@ -19,7 +19,25 @@ export class Notification {
     this._readAt = readAt ?? null;
   }
 
-  private _id: string;
+  static create(params: {
+    id: string | null;
+    userId: string;
+    channel: NotificationChannel;
+    subject: string;
+    content: string;
+  }): Notification {
+    return new Notification(
+      params.id ?? '',
+      params.userId,
+      params.channel,
+      params.subject,
+      params.content,
+      new Date(),
+      null,
+    );
+  }
+
+  private _id: string | null;
   private _userId: string;
   private _channel: NotificationChannel;
   private _subject: string;
@@ -27,10 +45,10 @@ export class Notification {
   private _createdAt: Date;
   private _readAt: Date | null;
 
-  get id(): string {
+  get id(): string | null {
     return this._id;
   }
-  set id(value: string) {
+  set id(value: string | null) {
     this._id = value;
   }
 
